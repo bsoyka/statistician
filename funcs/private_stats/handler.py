@@ -1,7 +1,7 @@
 import json
 
 from common.response import json_response
-from common.stats_table import get_stat, put_stat
+from common.stats_table import get_all_stats, get_stat, put_stat
 
 
 def lambda_handler(event, context):
@@ -16,12 +16,7 @@ def lambda_handler(event, context):
                 return json_response(404, {"message": "Stat not found"})
             return json_response(200, item)
 
-        return json_response(
-            400,
-            {
-                "message": "Use GET /public/stats for public listing or add more private routes later"
-            },
-        )
+        return json_response(200, {"items": get_all_stats()})
 
     if method == "PUT":
         stat_key = path_params.get("key")

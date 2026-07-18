@@ -11,6 +11,11 @@ def iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def get_all_stats() -> list[dict]:
+    resp = _TABLE.scan()
+    return resp.get("Items", [])
+
+
 def get_public_stats() -> list[dict]:
     resp = _TABLE.scan(
         FilterExpression="#public = :true",
@@ -45,3 +50,21 @@ def put_stat(
 
     _TABLE.put_item(Item=item)
     return item
+
+
+def public_stats_as_nested_object(items: list[dict]) -> dict:
+    output: dict = {}
+
+    for item in items:
+        stat_key = item["stat_key"]
+        value = item["value"]
+
+        current = output
+        *parents, leaf = stat_key.split(".")
+
+        for part in parents:
+            current = current.setdefault(part, {})
+
+        current[leaf] = value
+
+    return output

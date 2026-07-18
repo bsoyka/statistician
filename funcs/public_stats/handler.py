@@ -1,5 +1,5 @@
 from common.response import json_response
-from common.stats_table import get_public_stats, get_stat
+from common.stats_table import get_public_stats, get_stat, public_stats_as_nested_object
 
 
 def lambda_handler(event, context):
@@ -17,4 +17,4 @@ def lambda_handler(event, context):
         return json_response(200, item)
 
     items = get_public_stats()
-    return json_response(200, {"items": items})
+    return json_response(200, public_stats_as_nested_object(items))
