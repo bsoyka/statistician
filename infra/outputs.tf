@@ -34,3 +34,18 @@ output "singleton_stats_table_name" {
   value       = aws_dynamodb_table.singleton_stats.name
   description = "Singleton stats DynamoDB table name."
 }
+
+output "public_stats_url" {
+  value       = "${aws_apigatewayv2_stage.default.invoke_url}public/stats"
+  description = "Public stats endpoint."
+}
+
+output "public_facts_url" {
+  value       = "${aws_apigatewayv2_stage.default.invoke_url}public/facts"
+  description = "Public fun facts endpoint."
+}
+
+output "private_stats_url" {
+  value       = "${aws_apigatewayv2_stage.default.invoke_url}private/stats"
+  description = "Private stats endpoint."
+}

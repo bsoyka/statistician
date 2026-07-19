@@ -3,6 +3,9 @@ locals {
     public_stats = {
       handler_dir = "${path.module}/../funcs/public_stats"
     }
+    public_facts = {
+      handler_dir = "${path.module}/../funcs/public_facts"
+    }
     private_stats = {
       handler_dir = "${path.module}/../funcs/private_stats"
     }
@@ -10,12 +13,16 @@ locals {
 
   lambda_source_hashes = {
     for name, cfg in local.lambda_sources :
-    name => sha256(join("", [
-      filesha256("${cfg.handler_dir}/handler.py"),
-      filesha256("${path.module}/../funcs/common/__init__.py"),
-      filesha256("${path.module}/../funcs/common/response.py"),
-      filesha256("${path.module}/../funcs/common/stats_table.py"),
-    ]))
+    name => sha256(join("", concat(
+      [
+        filesha256("${cfg.handler_dir}/handler.py"),
+      ],
+      [
+        filesha256("${path.module}/../funcs/common/__init__.py"),
+        filesha256("${path.module}/../funcs/common/response.py"),
+        filesha256("${path.module}/../funcs/common/stats_table.py"),
+      ]
+    )))
   }
 }
 
@@ -27,7 +34,7 @@ resource "terraform_data" "package_lambda" {
   ]
 
   provisioner "local-exec" {
-    command = <<-EOT
+    command     = <<-EOT
       set -euo pipefail
       rm -rf "${path.module}/../build/${each.key}"
       mkdir -p "${path.module}/../build/${each.key}"

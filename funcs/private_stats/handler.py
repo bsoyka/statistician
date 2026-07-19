@@ -31,6 +31,7 @@ def lambda_handler(event, context):
         value = payload.get("value")
         label = payload.get("label")
         public = payload.get("public")
+        fun_fact_template = payload.get("fun_fact_template")
 
         if not isinstance(value, int):
             return json_response(400, {"message": "value must be an integer"})
@@ -40,6 +41,7 @@ def lambda_handler(event, context):
             value=value,
             label=label,
             public=public,
+            fun_fact_template=fun_fact_template,
         )
         return json_response(200, item)
 

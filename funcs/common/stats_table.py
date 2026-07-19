@@ -35,6 +35,7 @@ def put_stat(
     value: int,
     label: str | None,
     public: bool | None,
+    fun_fact_template: str | None = None,
     source: str = "manual",
 ) -> dict:
     existing = get_stat(stat_key) or {}
@@ -47,6 +48,11 @@ def put_stat(
         "source": source,
         "updated_at": iso_now(),
     }
+
+    if fun_fact_template is not None:
+        item["fun_fact_template"] = fun_fact_template
+    elif "fun_fact_template" in existing:
+        item["fun_fact_template"] = existing["fun_fact_template"]
 
     _TABLE.put_item(Item=item)
     return item
@@ -68,3 +74,28 @@ def public_stats_as_nested_object(items: list[dict]) -> dict:
         current[leaf] = value
 
     return output
+
+
+def render_fun_fact(item: dict) -> str | None:
+    template = item.get("fun_fact_template")
+    if not template:
+        return None
+
+    value = item.get("value")
+
+    try:
+        return template.format(value=value)
+    except (KeyError, ValueError, IndexError):
+        return None
+
+
+def get_public_fun_facts() -> list[str]:
+    items = get_public_stats()
+    facts: list[str] = []
+
+    for item in items:
+        rendered = render_fun_fact(item)
+        if rendered:
+            facts.append(rendered)
+
+    return facts
