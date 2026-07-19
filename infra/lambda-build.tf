@@ -19,7 +19,9 @@ locals {
       ],
       [
         filesha256("${path.module}/../funcs/common/__init__.py"),
+        filesha256("${path.module}/../funcs/common/facts.py"),
         filesha256("${path.module}/../funcs/common/response.py"),
+        filesha256("${path.module}/../funcs/common/static_facts.json"),
         filesha256("${path.module}/../funcs/common/stats_table.py"),
       ]
     )))
