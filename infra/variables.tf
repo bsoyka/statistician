@@ -23,7 +23,12 @@ variable "gatekeeper_issuer_url" {
 
 variable "gatekeeper_statistician_client_id" {
   type        = string
-  description = "Statistician app client ID from Gatekeeper outputs."
+  description = "Statistician web app client ID from Gatekeeper outputs."
+}
+
+variable "gatekeeper_statistician_api_keys_client_id" {
+  type        = string
+  description = "Statistician API keys client ID from Gatekeeper outputs."
 }
 
 variable "tags" {

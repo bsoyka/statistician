@@ -6,6 +6,6 @@ resource "aws_apigatewayv2_authorizer" "jwt" {
 
   jwt_configuration {
     issuer   = var.gatekeeper_issuer_url
-    audience = [var.gatekeeper_statistician_client_id]
+    audience = [var.gatekeeper_statistician_client_id, var.gatekeeper_statistician_api_keys_client_id]
   }
 }
