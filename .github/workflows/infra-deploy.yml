@@ -59,7 +59,7 @@ jobs:
         run: ../scripts/build_lambdas.sh
 
       - name: Generate plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -out=tfplan
 
       - name: Apply plan
-        run: terraform apply -no-color
+        run: terraform apply -no-color -auto-approve tfplan
