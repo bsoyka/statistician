@@ -23,6 +23,7 @@ jobs:
     outputs:
       has_changes: ${{ steps.plan.outputs.has_changes }}
 
+    environment: plan
     permissions:
       contents: read # To check out code
       id-token: write # To communicate with AWS for credentials
