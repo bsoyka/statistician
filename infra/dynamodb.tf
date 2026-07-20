@@ -7,6 +7,10 @@ resource "aws_dynamodb_table" "singleton_stats" {
     name = "stat_key"
     type = "S"
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
 }
 
 resource "aws_dynamodb_table" "activity_records" {
@@ -23,6 +27,10 @@ resource "aws_dynamodb_table" "activity_records" {
   attribute {
     name = "sk"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = var.tags
