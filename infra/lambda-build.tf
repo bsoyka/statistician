@@ -15,6 +15,9 @@ locals {
     private_ctl = {
       handler_dir = "${path.module}/../funcs/private_ctl"
     }
+    recompute_stats = {
+      handler_dir = "${path.module}/../funcs/recompute_stats"
+    }
   }
 
   lambda_source_hashes = {
