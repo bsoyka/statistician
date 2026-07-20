@@ -31,18 +31,18 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: arn:aws:iam::685873929017:role/statistician-github-actions
           aws-region: us-east-1
 
       - name: Get AWS SSM parameters
-        uses: dkershner6/aws-ssm-getparameters-action@v2
+        uses: dkershner6/aws-ssm-getparameters-action@4fcb4872421f387a6c43058473acc1b22443fe13 # v2.0.3
         with:
           parameterPairs: |
             /statistician/prod/gatekeeper/issuer-url = TF_VAR_gatekeeper_issuer_url,
@@ -50,7 +50,7 @@ jobs:
             /statistician/prod/tags = TF_VAR_tags
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: "~1.15.8"
 
