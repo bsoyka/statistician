@@ -20,8 +20,9 @@ jobs:
   plan:
     name: Plan infrastructure changes
     runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
 
-    environment: plan
     permissions:
       contents: read # To check out code
       id-token: write # To communicate with AWS for credentials
@@ -66,9 +67,22 @@ jobs:
         run: ../scripts/build_lambdas.sh
 
       - name: Generate plan
-        run: terraform plan -no-color -out=tfplan
+        id: plan
+        run: |
+          set +e
+          terraform plan -no-color -detailed-exitcode -out=tfplan
+          exit_code=$?
+          set -e
+          if [[ $exit_code -eq 0 ]]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif [[ $exit_code -eq 2 ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            exit $exit_code
+          fi
 
       - name: Upload plan to S3
+        if: steps.plan.outputs.has_changes == 'true'
         run: |
           aws s3 cp tfplan s3://bsoyka-tfstate/statistician-tfplan
           aws s3 cp --recursive ../build s3://bsoyka-tfstate/statistician-tfplan-build
@@ -77,6 +91,7 @@ jobs:
     name: Apply infrastructure changes
     runs-on: ubuntu-latest
     needs: plan
+    if: needs.plan.outputs.has_changes == 'true'
 
     environment: prod
     permissions:
