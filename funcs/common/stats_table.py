@@ -85,7 +85,7 @@ def render_fun_fact(item: dict) -> str | None:
 
     try:
         return template.format(value=value)
-    except (KeyError, ValueError, IndexError):
+    except KeyError, ValueError, IndexError:
         return None
 
 
