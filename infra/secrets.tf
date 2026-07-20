@@ -4,19 +4,36 @@ resource "aws_secretsmanager_secret" "unsplash" {
   tags = var.tags
 }
 
-resource "aws_iam_role_policy" "recompute_stats_unsplash_secret" {
-  name = "${local.name_prefix}-recompute-stats-unsplash-secret"
+resource "aws_secretsmanager_secret" "strava" {
+  name = "statistician/prod/external/strava"
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "recompute_stats_secrets" {
+  name = "${local.name_prefix}-recompute-stats-secrets"
   role = aws_iam_role.recompute_stats_lambda.id
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Sid    = "ReadUnsplashSecret"
-      Effect = "Allow"
-      Action = [
-        "secretsmanager:GetSecretValue"
-      ]
-      Resource = aws_secretsmanager_secret.unsplash.arn
-    }]
+    Statement = [
+      {
+        Sid    = "ReadUnsplashSecret"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.unsplash.arn
+      },
+      {
+        Sid    = "ReadWriteStravaSecret"
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue"
+        ]
+        Resource = aws_secretsmanager_secret.strava.arn
+      }
+    ]
   })
 }

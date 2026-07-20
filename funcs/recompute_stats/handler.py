@@ -1,10 +1,13 @@
 import json
 from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
 
 import boto3
 import urllib3
 from common.activity_table import list_ctl_weeks, list_volunteer_entries
 from common.stats_table import put_stat
+
+METERS_TO_MILES = Decimal("0.000621371")
 
 _SECRETS_CLIENT = boto3.client("secretsmanager")
 
@@ -120,10 +123,69 @@ def fetch_unsplash() -> dict:
     return data
 
 
+def prepare_meters_to_miles(meters: float) -> Decimal:
+    return (Decimal(str(meters)) * METERS_TO_MILES).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
+
+def fetch_strava() -> dict:
+    secrets_response = _SECRETS_CLIENT.get_secret_value(
+        SecretId="statistician/prod/external/strava"
+    )
+    secrets = json.loads(secrets_response["SecretString"])
+
+    # Refresh the access token using the refresh token.
+    token_response = urllib3.request(
+        "POST",
+        "https://www.strava.com/api/v3/oauth/token",
+        fields={
+            "client_id": secrets["client_id"],
+            "client_secret": secrets["client_secret"],
+            "refresh_token": secrets["refresh_token"],
+            "grant_type": "refresh_token",
+        },
+    )
+    tokens = token_response.json()
+
+    # Persist the new access and refresh tokens back to Secrets Manager.
+    _SECRETS_CLIENT.put_secret_value(
+        SecretId="statistician/prod/external/strava",
+        SecretString=json.dumps(
+            {
+                **secrets,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+            }
+        ),
+    )
+
+    stats_response = urllib3.request(
+        "GET",
+        f"https://www.strava.com/api/v3/athletes/{secrets['athlete_id']}/stats",
+        headers={"Authorization": "Bearer " + tokens["access_token"]},
+    )
+    data = stats_response.json()
+
+    put_stat(
+        stat_key="fitness.strava.run_miles_total",
+        value=prepare_meters_to_miles(data["all_run_totals"]["distance"]),
+        source="scheduled request to Strava API",
+    )
+    put_stat(
+        stat_key="fitness.strava.run_miles_ytd",
+        value=prepare_meters_to_miles(data["ytd_run_totals"]["distance"]),
+        source="scheduled request to Strava API",
+    )
+
+    return data
+
+
 def lambda_handler(event, context):
     ctl = recompute_ctl()
     volunteer = recompute_volunteer()
     unsplash = fetch_unsplash()
+    strava = fetch_strava()
 
     overall_total_hours = ctl["ctl_total_hours"] + volunteer["volunteer_total_hours"]
     overall_year_hours = ctl["ctl_year_hours"] + volunteer["volunteer_year_hours"]
@@ -141,5 +203,12 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({**ctl, **volunteer, "unsplash_response": unsplash}),
+        "body": json.dumps(
+            {
+                **ctl,
+                **volunteer,
+                "unsplash_response": unsplash,
+                "strava_response": strava,
+            }
+        ),
     }

@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import boto3
 
@@ -32,7 +33,7 @@ def get_stat(stat_key: str) -> dict | None:
 
 def put_stat(
     stat_key: str,
-    value: int,
+    value: int | Decimal,
     label: str | None = None,
     public: bool | None = None,
     fun_fact_template: str | None = None,
