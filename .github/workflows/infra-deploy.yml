@@ -21,7 +21,7 @@ jobs:
     name: Plan infrastructure changes
     runs-on: ubuntu-latest
     outputs:
-      has_changes: ${{ steps.plan.outputs.has_changes }}
+      has_changes: ${{ steps.plan_result.outputs.has_changes }}
 
     environment: plan
     permissions:
@@ -69,21 +69,22 @@ jobs:
 
       - name: Generate plan
         id: plan
+        run: terraform plan -no-color -detailed-exitcode -out=tfplan
+        continue-on-error: true
+
+      - name: Check plan exit code
         run: |
-          set +e
-          terraform plan -no-color -detailed-exitcode -out=tfplan
-          exit_code=$?
-          set -e
-          if [[ $exit_code -eq 0 ]]; then
+          if [[ "${{ steps.plan.outputs.exitcode }}" -eq 0 ]]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          elif [[ $exit_code -eq 2 ]]; then
+          elif [[ "${{ steps.plan.outputs.exitcode }}" -eq 2 ]]; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           else
-            exit $exit_code
+            exit 1
           fi
+        id: plan_result
 
       - name: Upload plan to S3
-        if: steps.plan.outputs.has_changes == 'true'
+        if: steps.plan_result.outputs.has_changes == 'true'
         run: |
           aws s3 cp tfplan s3://bsoyka-tfstate/statistician-tfplan
           aws s3 cp --recursive ../build s3://bsoyka-tfstate/statistician-tfplan-build
