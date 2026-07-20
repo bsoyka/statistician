@@ -1,0 +1,57 @@
+name: Infrastructure deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/
+      - funcs/
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./infra
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy infrastructure
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: arn:aws:iam::685873929017:role/statistician-github-actions
+          aws-region: us-east-1
+
+      - name: Get AWS SSM parameters
+        uses: dkershner6/aws-ssm-getparameters-action@v2
+        with:
+          parameterPairs: |
+            /statistician/prod/gatekeeper/issuer-url = TF_VAR_gatekeeper_issuer_url,
+            /statistician/prod/gatekeeper/client-id = TF_VAR_gatekeeper_statistician_client_id,
+            /statistician/prod/tags = TF_VAR_tags
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "~1.15.8"
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Validate infrastructure files
+        run: terraform validate -no-color
+
+      - name: Generate plan
+        run: terraform plan -no-color
+
+      - name: Apply plan
+        run: terraform apply -no-color
