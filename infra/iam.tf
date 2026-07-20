@@ -153,6 +153,7 @@ resource "aws_iam_role_policy" "recompute_stats_dynamodb" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "ReadActivityTable"
         Effect = "Allow"
         Action = [
           "dynamodb:Query"
@@ -160,9 +161,12 @@ resource "aws_iam_role_policy" "recompute_stats_dynamodb" {
         Resource = aws_dynamodb_table.activity_records.arn
       },
       {
+        Sid    = "ReadWriteStatsTable"
         Effect = "Allow"
         Action = [
-          "dynamodb:PutItem"
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem"
         ]
         Resource = aws_dynamodb_table.singleton_stats.arn
       }
