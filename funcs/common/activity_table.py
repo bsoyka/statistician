@@ -25,14 +25,6 @@ def make_volunteer_sk(entry_date: str) -> str:
     return f"DATE#{entry_date}#ENTRY#{uuid.uuid7()}"
 
 
-def ctl_pk() -> str:
-    return "ACTIVITY#CTL"
-
-
-def ctl_week_sk(week_end_date: str) -> str:
-    return f"WEEK_END#{week_end_date}"
-
-
 def create_volunteer_entry(
     date: str,
     minutes: int,
@@ -74,10 +66,17 @@ def list_volunteer_entries(
     return response.get("Items", [])
 
 
+def ctl_pk() -> str:
+    return "ACTIVITY#CTL"
+
+
+def ctl_week_sk(week_end_date: str) -> str:
+    return f"WEEK_END#{week_end_date}"
+
+
 def upsert_ctl_week(
     week_end_date: str,
     minutes: int,
-    people_helped: int,
     notes: str | None = None,
 ) -> dict:
     now = iso_now()
@@ -86,14 +85,13 @@ def upsert_ctl_week(
 
     existing = _TABLE.get_item(Key={"pk": pk, "sk": sk}).get("Item")
 
-    update_expr = "SET minutes = :minutes, people_helped = :people_helped, updated_at = :updated_at"
-    expr_values = {
-        ":minutes": minutes,
-        ":people_helped": people_helped,
-        ":updated_at": now,
-    }
-
     if existing:
+        update_expr = "SET minutes = :minutes, updated_at = :updated_at"
+        expr_values = {
+            ":minutes": minutes,
+            ":updated_at": now,
+        }
+
         if notes is not None:
             update_expr += ", notes = :notes"
             expr_values[":notes"] = notes
@@ -110,10 +108,10 @@ def upsert_ctl_week(
             "entity_type": "ctl_week",
             "week_end_date": week_end_date,
             "minutes": minutes,
-            "people_helped": people_helped,
             "created_at": now,
             "updated_at": now,
         }
+
         if notes is not None:
             item["notes"] = notes
 

@@ -18,7 +18,6 @@ def lambda_handler(event, context):
     path = event["requestContext"]["http"]["path"]
     query = event.get("queryStringParameters") or {}
 
-    # PUT /private/ctl/weeks/{week_end_date}
     if method == "PUT" and path.startswith("/private/ctl/weeks/"):
         week_end_date = path.split("/private/ctl/weeks/")[1]
 
@@ -31,7 +30,6 @@ def lambda_handler(event, context):
             return json_response(400, {"message": "Invalid JSON body"})
 
         minutes = payload.get("minutes")
-        people_helped = payload.get("people_helped")
         notes = payload.get("notes")
 
         if not isinstance(minutes, int) or minutes < 0:
@@ -39,20 +37,13 @@ def lambda_handler(event, context):
                 400, {"message": "minutes must be a non-negative integer"}
             )
 
-        if not isinstance(people_helped, int) or people_helped < 0:
-            return json_response(
-                400, {"message": "people_helped must be a non-negative integer"}
-            )
-
         item = upsert_ctl_week(
             week_end_date=week_end_date,
             minutes=minutes,
-            people_helped=people_helped,
             notes=notes,
         )
         return json_response(200, item)
 
-    # GET /private/ctl/weeks?from=YYYY-MM-DD&to=YYYY-MM-DD
     if method == "GET" and path == "/private/ctl/weeks":
         date_from = query.get("from")
         date_to = query.get("to")
@@ -66,7 +57,6 @@ def lambda_handler(event, context):
             200, {"items": list_ctl_weeks(date_from=date_from, date_to=date_to)}
         )
 
-    # GET /private/ctl/summary?from=YYYY-MM-DD&to=YYYY-MM-DD
     if method == "GET" and path == "/private/ctl/summary":
         date_from = query.get("from")
         date_to = query.get("to")
@@ -78,14 +68,12 @@ def lambda_handler(event, context):
 
         items = list_ctl_weeks(date_from=date_from, date_to=date_to)
         total_minutes = sum(int(item["minutes"]) for item in items)
-        total_people_helped = sum(int(item["people_helped"]) for item in items)
 
         return json_response(
             200,
             {
                 "total_minutes": total_minutes,
                 "total_hours": total_minutes / 60,
-                "total_people_helped": total_people_helped,
                 "week_count": len(items),
             },
         )
