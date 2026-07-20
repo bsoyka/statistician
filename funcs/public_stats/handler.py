@@ -16,5 +16,5 @@ def lambda_handler(event, context):
             return json_response(404, {"message": "Stat not found"})
         return json_response(200, item)
 
-    items = get_public_stats()
+    items = sorted(get_public_stats(), key=lambda i: i["stat_key"])
     return json_response(200, public_stats_as_nested_object(items))
