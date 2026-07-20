@@ -2,11 +2,11 @@ name: Infrastructure deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - infra/
-      - funcs/
+      - infra/**
+      - funcs/**
+      - .github/workflows/infra-deploy.yml
   workflow_dispatch:
 
 defaults:
@@ -20,10 +20,13 @@ jobs:
   deploy:
     name: Deploy infrastructure
 
+    environment: main
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out code
+        uses: actions/checkout@v7
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
