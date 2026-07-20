@@ -45,3 +45,35 @@ resource "aws_lambda_function" "private_stats" {
     }
   }
 }
+
+resource "aws_lambda_function" "private_volunteer" {
+  function_name = "${local.name_prefix}-private-volunteer"
+  role          = aws_iam_role.private_activity_lambda.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.14"
+
+  filename         = data.archive_file.lambda_zip["private_volunteer"].output_path
+  source_code_hash = data.archive_file.lambda_zip["private_volunteer"].output_base64sha256
+
+  environment {
+    variables = {
+      ACTIVITY_TABLE = aws_dynamodb_table.activity_records.name
+    }
+  }
+}
+
+resource "aws_lambda_function" "private_ctl" {
+  function_name = "${local.name_prefix}-private-ctl"
+  role          = aws_iam_role.private_activity_lambda.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.14"
+
+  filename         = data.archive_file.lambda_zip["private_ctl"].output_path
+  source_code_hash = data.archive_file.lambda_zip["private_ctl"].output_base64sha256
+
+  environment {
+    variables = {
+      ACTIVITY_TABLE = aws_dynamodb_table.activity_records.name
+    }
+  }
+}

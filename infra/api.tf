@@ -93,3 +93,81 @@ resource "aws_lambda_permission" "private_stats_apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*/private/stats*"
 }
+
+resource "aws_apigatewayv2_integration" "private_volunteer" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.private_volunteer.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "private_volunteer_entries_post" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "POST /private/volunteer/entries"
+  target             = "integrations/${aws_apigatewayv2_integration.private_volunteer.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_volunteer_entries_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/volunteer/entries"
+  target             = "integrations/${aws_apigatewayv2_integration.private_volunteer.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_volunteer_summary_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/volunteer/summary"
+  target             = "integrations/${aws_apigatewayv2_integration.private_volunteer.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_lambda_permission" "private_volunteer_apigw" {
+  statement_id  = "AllowExecutionFromAPIGateway-private-volunteer"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.private_volunteer.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*/private/volunteer/*"
+}
+
+resource "aws_apigatewayv2_integration" "private_ctl" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.private_ctl.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "private_ctl_weeks_put" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "PUT /private/ctl/weeks/{week_end_date}"
+  target             = "integrations/${aws_apigatewayv2_integration.private_ctl.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_ctl_weeks_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/ctl/weeks"
+  target             = "integrations/${aws_apigatewayv2_integration.private_ctl.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_ctl_summary_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/ctl/summary"
+  target             = "integrations/${aws_apigatewayv2_integration.private_ctl.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_lambda_permission" "private_ctl_apigw" {
+  statement_id  = "AllowExecutionFromAPIGateway-private-ctl"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.private_ctl.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*/private/ctl/*"
+}

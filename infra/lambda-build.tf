@@ -9,6 +9,12 @@ locals {
     private_stats = {
       handler_dir = "${path.module}/../funcs/private_stats"
     }
+    private_volunteer = {
+      handler_dir = "${path.module}/../funcs/private_volunteer"
+    }
+    private_ctl = {
+      handler_dir = "${path.module}/../funcs/private_ctl"
+    }
   }
 
   lambda_source_hashes = {
@@ -19,6 +25,7 @@ locals {
       ],
       [
         filesha256("${path.module}/../funcs/common/__init__.py"),
+        filesha256("${path.module}/../funcs/common/activity_table.py"),
         filesha256("${path.module}/../funcs/common/facts.py"),
         filesha256("${path.module}/../funcs/common/response.py"),
         filesha256("${path.module}/../funcs/common/static_facts.json"),
