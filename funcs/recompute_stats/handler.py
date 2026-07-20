@@ -1,24 +1,12 @@
 import json
 import os
-from datetime import datetime, timezone
 
 import boto3
 from boto3.dynamodb.conditions import Key
+from common.stats_table import put_stat
 
 ACTIVITY_TABLE = os.environ["ACTIVITY_TABLE"]
-STATS_TABLE = os.environ["STATS_TABLE"]
-
 _activity = boto3.resource("dynamodb").Table(ACTIVITY_TABLE)
-_stats = boto3.resource("dynamodb").Table(STATS_TABLE)
-
-
-def iso_now() -> str:
-    return (
-        datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
 
 
 def recompute_ctl_minutes() -> int:
@@ -28,27 +16,13 @@ def recompute_ctl_minutes() -> int:
     return sum(int(item["minutes"]) for item in items)
 
 
-def upsert_stat(key: str, value: int, label: str) -> None:
-    now = iso_now()
-
-    _stats.put_item(
-        Item={
-            "key": key,
-            "value": value,
-            "label": label,
-            "updated_at": now,
-        }
-    )
-
-
 def lambda_handler(event, context):
     ctl_minutes = recompute_ctl_minutes()
     ctl_hours = ctl_minutes // 60
 
-    upsert_stat(
-        key="ctl.hours_total",
+    put_stat(
+        stat_key="ctl.hours_total",
         value=ctl_hours,
-        label="Crisis Text Line volunteer hours",
     )
 
     return {

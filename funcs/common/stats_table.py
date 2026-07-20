@@ -33,8 +33,8 @@ def get_stat(stat_key: str) -> dict | None:
 def put_stat(
     stat_key: str,
     value: int,
-    label: str | None,
-    public: bool | None,
+    label: str | None = None,
+    public: bool | None = None,
     fun_fact_template: str | None = None,
     source: str = "manual",
 ) -> dict:
