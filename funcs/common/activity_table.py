@@ -31,6 +31,7 @@ def create_volunteer_entry(
     organization: str | None = None,
     group_name: str | None = None,
     notes: str | None = None,
+    fmsc_meals: int | None = None,
 ) -> dict:
     now = iso_now()
     item = {
@@ -49,6 +50,8 @@ def create_volunteer_entry(
         item["group_name"] = group_name
     if notes:
         item["notes"] = notes
+    if fmsc_meals is not None:
+        item["fmsc_meals"] = fmsc_meals
 
     _TABLE.put_item(Item=item)
     return item
@@ -64,6 +67,27 @@ def list_volunteer_entries(
 
     response = _TABLE.query(KeyConditionExpression=key_cond)
     return response.get("Items", [])
+
+
+def get_volunteer_summary(
+    date_from: str | None = None, date_to: str | None = None
+) -> dict:
+    items = list_volunteer_entries(date_from=date_from, date_to=date_to)
+    total_minutes = sum(int(item["minutes"]) for item in items)
+    total_fmsc_meals = sum(
+        int(item["fmsc_meals"]) for item in items if "fmsc_meals" in item
+    )
+
+    summary: dict = {
+        "total_minutes": total_minutes,
+        "total_hours": total_minutes // 60,
+        "entry_count": len(items),
+    }
+
+    if total_fmsc_meals:
+        summary["total_fmsc_meals"] = total_fmsc_meals
+
+    return summary
 
 
 def ctl_pk() -> str:

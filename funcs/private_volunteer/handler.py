@@ -1,8 +1,16 @@
 import json
 from datetime import date as date_type
 
+from common.activity_table import (
+    create_volunteer_entry as create_entry,
+)
+from common.activity_table import (
+    get_volunteer_summary as get_summary,
+)
+from common.activity_table import (
+    list_volunteer_entries as list_entries,
+)
 from common.response import json_response
-from common.volunteer_table import create_entry, get_summary, list_entries
 
 
 def validate_date(value: str) -> bool:
@@ -29,6 +37,7 @@ def lambda_handler(event, context):
         organization = payload.get("organization")
         group_name = payload.get("group_name")
         notes = payload.get("notes")
+        fmsc_meals = payload.get("fmsc_meals")
 
         if not isinstance(date, str) or not validate_date(date):
             return json_response(
@@ -38,12 +47,20 @@ def lambda_handler(event, context):
         if not isinstance(minutes, int) or minutes <= 0:
             return json_response(400, {"message": "minutes must be a positive integer"})
 
+        if fmsc_meals is not None and (
+            not isinstance(fmsc_meals, int) or fmsc_meals <= 0
+        ):
+            return json_response(
+                400, {"message": "fmsc_meals must be a positive integer"}
+            )
+
         item = create_entry(
             date=date,
             minutes=minutes,
             organization=organization,
             group_name=group_name,
             notes=notes,
+            fmsc_meals=fmsc_meals,
         )
         return json_response(201, item)
 
