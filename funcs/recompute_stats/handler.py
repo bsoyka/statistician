@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     ctl_hours = ctl_minutes // 60
 
     put_stat(
-        stat_key="ctl.hours_total",
+        stat_key="volunteering.ctl.hours_total",
         value=ctl_hours,
     )
 
