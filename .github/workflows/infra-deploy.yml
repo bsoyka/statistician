@@ -21,6 +21,7 @@ jobs:
     name: Plan infrastructure changes
     runs-on: ubuntu-latest
 
+    environment: plan
     permissions:
       contents: read # To check out code
       id-token: write # To communicate with AWS for credentials
