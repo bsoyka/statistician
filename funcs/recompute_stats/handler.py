@@ -1,7 +1,9 @@
+import json
 import os
 from datetime import datetime, timezone
 
 import boto3
+from boto3.dynamodb.conditions import Key
 
 ACTIVITY_TABLE = os.environ["ACTIVITY_TABLE"]
 STATS_TABLE = os.environ["STATS_TABLE"]
@@ -20,15 +22,15 @@ def iso_now() -> str:
 
 
 def recompute_ctl_minutes() -> int:
-    response = _activity.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key("pk").eq("ACTIVITY#CTL")
-    )
+    response = _activity.query(KeyConditionExpression=Key("pk").eq("ACTIVITY#CTL"))
     items = response.get("Items", [])
+
     return sum(int(item["minutes"]) for item in items)
 
 
-def upsert_stat(key: str, value: float, label: str) -> None:
+def upsert_stat(key: str, value: int, label: str) -> None:
     now = iso_now()
+
     _stats.put_item(
         Item={
             "key": key,
@@ -41,18 +43,20 @@ def upsert_stat(key: str, value: float, label: str) -> None:
 
 def lambda_handler(event, context):
     ctl_minutes = recompute_ctl_minutes()
-    ctl_hours = ctl_minutes / 60.0
+    ctl_hours = ctl_minutes // 60
 
     upsert_stat(
-        key="volunteering.ctl.hours_total",
+        key="ctl.hours_total",
         value=ctl_hours,
         label="Crisis Text Line volunteer hours",
     )
 
     return {
         "statusCode": 200,
-        "body": {
-            "ctl_minutes": ctl_minutes,
-            "ctl_hours": ctl_hours,
-        },
+        "body": json.dumps(
+            {
+                "ctl_minutes": ctl_minutes,
+                "ctl_hours": ctl_hours,
+            }
+        ),
     }
