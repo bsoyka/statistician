@@ -22,8 +22,12 @@ jobs:
 
     environment: prod
     permissions:
-      contents: read # For checking out code
-      id-token: write # For requesting AWS credentials
+      contents: read # To check out code
+      id-token: write # To communicate with AWS for credentials
+
+    concurrency:
+      group: infra-deploy
+      cancel-in-progress: true
 
     steps:
       - name: Check out code

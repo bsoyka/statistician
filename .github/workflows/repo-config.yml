@@ -8,11 +8,14 @@ permissions: {}
 jobs:
   labels:
     name: Sync labels
-
     runs-on: ubuntu-latest
 
     permissions:
-      issues: write
+      issues: write # To edit labels
+
+    concurrency:
+      group: labels
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
