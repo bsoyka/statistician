@@ -1,8 +1,12 @@
 import json
 from datetime import datetime, timezone
 
+import boto3
+import urllib3
 from common.activity_table import list_ctl_weeks, list_volunteer_entries
 from common.stats_table import put_stat
+
+_SECRETS_CLIENT = boto3.client("secretsmanager")
 
 
 def current_year() -> str:
@@ -58,16 +62,6 @@ def recompute_volunteer() -> dict:
     )
 
     put_stat(
-        stat_key="volunteering.overall.hours_total",
-        value=total_minutes // 60,
-        source="scheduled summary from volunteer logs in activity table",
-    )
-    put_stat(
-        stat_key="volunteering.overall.hours_current_year",
-        value=year_minutes // 60,
-        source="scheduled summary from volunteer logs in activity table",
-    )
-    put_stat(
         stat_key="volunteering.fmsc.meals_total",
         value=total_fmsc_meals,
         source="scheduled summary from volunteer logs in activity table",
@@ -88,9 +82,48 @@ def recompute_volunteer() -> dict:
     }
 
 
+def fetch_unsplash() -> dict:
+    secrets_response = _SECRETS_CLIENT.get_secret_value(
+        SecretId="statistician/prod/external/unsplash"
+    )
+    secrets = json.loads(secrets_response["SecretString"])
+
+    unsplash_response = urllib3.request(
+        "GET",
+        f"https://api.unsplash.com/users/{secrets['username']}/statistics",
+        fields={"resolution": "days", "quantity": "7"},
+        headers={"Authorization": "Client-ID " + secrets["access_key"]},
+    )
+    data = unsplash_response.json()
+
+    put_stat(
+        stat_key="photography.unsplash.downloads_total",
+        value=data["downloads"]["total"],
+        source="scheduled request to Unsplash API",
+    )
+    put_stat(
+        stat_key="photography.unsplash.downloads_week",
+        value=data["downloads"]["historical"]["change"],
+        source="scheduled request to Unsplash API",
+    )
+    put_stat(
+        stat_key="photography.unsplash.views_total",
+        value=data["views"]["total"],
+        source="scheduled request to Unsplash API",
+    )
+    put_stat(
+        stat_key="photography.unsplash.views_week",
+        value=data["views"]["historical"]["change"],
+        source="scheduled request to Unsplash API",
+    )
+
+    return data
+
+
 def lambda_handler(event, context):
     ctl = recompute_ctl()
     volunteer = recompute_volunteer()
+    unsplash = fetch_unsplash()
 
     overall_total_hours = ctl["ctl_total_hours"] + volunteer["volunteer_total_hours"]
     overall_year_hours = ctl["ctl_year_hours"] + volunteer["volunteer_year_hours"]
@@ -108,5 +141,5 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps({**ctl, **volunteer}),
+        "body": json.dumps({**ctl, **volunteer, "unsplash_response": unsplash}),
     }
