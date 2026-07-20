@@ -23,6 +23,7 @@ def lambda_handler(event, context):
     put_stat(
         stat_key="volunteering.ctl.hours_total",
         value=ctl_hours,
+        source="scheduled summary from CTL logs in activity table",
     )
 
     return {
