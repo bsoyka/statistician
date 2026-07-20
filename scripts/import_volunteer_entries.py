@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+#
+# /// script
+# requires-python = ">=3.14"
+# dependencies = ["boto3>=1.43.51"]
+# ///
 """One-time import of volunteer entries from a CSV file into DynamoDB.
 
 Expected CSV columns (header row required):
