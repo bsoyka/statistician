@@ -51,11 +51,11 @@ output "private_stats_url" {
 }
 
 output "private_volunteer_entries_url" {
-  value       = "${aws_apigatewayv2_stage.default.invoke_url}/private/volunteer/entries"
+  value       = "${aws_apigatewayv2_stage.default.invoke_url}private/volunteer/entries"
   description = "Private volunteer entries endpoint."
 }
 
 output "private_ctl_weeks_url" {
-  value       = "${aws_apigatewayv2_stage.default.invoke_url}/private/ctl/weeks"
+  value       = "${aws_apigatewayv2_stage.default.invoke_url}private/ctl/weeks"
   description = "Private CTL weeks endpoint."
 }
