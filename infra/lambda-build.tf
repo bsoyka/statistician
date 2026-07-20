@@ -46,13 +46,7 @@ resource "terraform_data" "package_lambda" {
   ]
 
   provisioner "local-exec" {
-    command     = <<-EOT
-      set -euo pipefail
-      rm -rf "${path.module}/../build/${each.key}"
-      mkdir -p "${path.module}/../build/${each.key}"
-      cp "${each.value.handler_dir}/handler.py" "${path.module}/../build/${each.key}/handler.py"
-      cp -R "${path.module}/../funcs/common" "${path.module}/../build/${each.key}/common"
-    EOT
+    command     = "${path.module}/../scripts/build_lambdas.sh ${each.key}"
     interpreter = ["/bin/bash", "-c"]
   }
 }

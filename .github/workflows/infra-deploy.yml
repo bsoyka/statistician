@@ -62,6 +62,10 @@ jobs:
       - name: Validate infrastructure files
         run: terraform validate -no-color
 
+      # Building is necessary for the planning step to succeed due to how Terraform runs things.
+      - name: Build Lambda packages
+        run: ../scripts/build_lambdas.sh
+
       - name: Generate plan
         run: terraform plan -no-color
 
