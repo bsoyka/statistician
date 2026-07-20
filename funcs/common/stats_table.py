@@ -84,9 +84,31 @@ def render_fun_fact(item: dict) -> str | None:
     value = item.get("value")
 
     try:
-        return template.format(value=value)
-    except KeyError, ValueError, IndexError:
+        return template.format_map(_ExpressionMap(value))
+    except KeyError, ValueError, IndexError, ZeroDivisionError, SyntaxError:
         return None
+
+
+class _ExpressionMap:
+    """Mapping that evaluates simple arithmetic expressions against `value`.
+
+    Allows format strings like ``{value:,}`` or ``{value/365:,.0f}``.
+    The key is evaluated as a Python expression with ``value`` in scope,
+    so any valid numeric expression referencing ``value`` will work.
+    """
+
+    def __init__(self, value: object) -> None:
+        self._value = value
+
+    def __getitem__(self, key: str) -> object:
+        return eval(key, {"__builtins__": {}}, {"value": self._value})  # noqa: S307
+
+    def __contains__(self, key: object) -> bool:
+        try:
+            self[key]  # type: ignore[arg-type]
+            return True
+        except Exception:
+            return False
 
 
 def get_public_fun_facts() -> list[str]:
