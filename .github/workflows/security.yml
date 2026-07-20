@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: ["**"]
+  schedule:
+    - cron: "45 18 * * 5"
 
 permissions: {}
 
@@ -32,3 +34,34 @@ jobs:
         uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
         with:
           persona: auditor
+
+  python:
+    name: Check Python code
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write # To upload findings to GitHub Advanced Security.
+      packages: read # To fetch internal or private CodeQL packs
+      actions: read # To check out code.
+      contents: read # To read workflow run info when uploading SARIF files.
+
+    concurrency:
+      group: security-python
+      cancel-in-progress: true
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        with:
+          languages: python
+          build-mode: none
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        with:
+          category: "/language:python"
