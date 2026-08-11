@@ -46,6 +46,25 @@ export interface CtlSummary {
   week_count: number;
 }
 
+export interface Solve {
+  pk: string;
+  sk: string;
+  entity_type: string;
+  event: string;
+  scramble: string;
+  time_ms: number;
+  penalty?: "+2" | "DNF";
+  timestamp: string;
+  source: string;
+}
+
+export interface SolveSummary {
+  count_total: number;
+  pr_single_ms: number | null;
+  current_ao5_ms: number | null;
+  current_ao12_ms: number | null;
+}
+
 export interface Preferences {
   apiUrl: string;
   apiKey: string;

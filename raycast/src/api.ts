@@ -155,6 +155,18 @@ export function formatDate(dateStr: string): string {
   });
 }
 
+export function formatSolveTime(timeMs: number): string {
+  const totalCentiseconds = Math.round(timeMs / 10);
+  const minutes = Math.floor(totalCentiseconds / 6000);
+  const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+  const centiseconds = totalCentiseconds % 100;
+  const secondsStr = String(seconds).padStart(minutes > 0 ? 2 : 1, "0");
+  const centisecondsStr = String(centiseconds).padStart(2, "0");
+  return minutes > 0
+    ? `${minutes}:${secondsStr}.${centisecondsStr}`
+    : `${secondsStr}.${centisecondsStr}`;
+}
+
 export function toISODate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");

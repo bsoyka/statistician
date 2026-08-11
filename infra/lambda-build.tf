@@ -15,6 +15,9 @@ locals {
     private_ctl = {
       handler_dir = "${path.module}/../funcs/private_ctl"
     }
+    private_solves = {
+      handler_dir = "${path.module}/../funcs/private_solves"
+    }
     recompute_stats = {
       handler_dir = "${path.module}/../funcs/recompute_stats"
     }
@@ -31,6 +34,7 @@ locals {
         filesha256("${path.module}/../funcs/common/activity_table.py"),
         filesha256("${path.module}/../funcs/common/facts.py"),
         filesha256("${path.module}/../funcs/common/response.py"),
+        filesha256("${path.module}/../funcs/common/solves_table.py"),
         filesha256("${path.module}/../funcs/common/static_facts.json"),
         filesha256("${path.module}/../funcs/common/stats_table.py"),
       ]

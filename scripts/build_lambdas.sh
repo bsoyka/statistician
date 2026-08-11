@@ -21,6 +21,7 @@ ALL_FUNCS=(
   private_stats
   private_volunteer
   private_ctl
+  private_solves
   recompute_stats
 )
 

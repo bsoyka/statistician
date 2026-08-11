@@ -5,6 +5,7 @@ from decimal import ROUND_HALF_UP, Decimal
 import boto3
 import urllib3
 from common.activity_table import list_ctl_weeks, list_volunteer_entries
+from common.solves_table import get_solve_summary
 from common.stats_table import put_stat
 
 METERS_TO_MILES = Decimal("0.000621371")
@@ -83,6 +84,39 @@ def recompute_volunteer() -> dict:
         "fmsc_total_meals": total_fmsc_meals,
         "fmsc_year_meals": year_fmsc_meals,
     }
+
+
+def recompute_solves() -> dict:
+    summary = get_solve_summary("333")
+
+    put_stat(
+        stat_key="cubing.cube3x3.solve_count_total",
+        value=summary["count_total"],
+        source="scheduled summary from cube solve logs in activity table",
+    )
+
+    if summary["pr_single_ms"] is not None:
+        put_stat(
+            stat_key="cubing.cube3x3.pr_single_ms",
+            value=summary["pr_single_ms"],
+            source="scheduled summary from cube solve logs in activity table",
+        )
+
+    if summary["current_ao5_ms"] is not None:
+        put_stat(
+            stat_key="cubing.cube3x3.current_ao5_ms",
+            value=summary["current_ao5_ms"],
+            source="scheduled summary from cube solve logs in activity table",
+        )
+
+    if summary["current_ao12_ms"] is not None:
+        put_stat(
+            stat_key="cubing.cube3x3.current_ao12_ms",
+            value=summary["current_ao12_ms"],
+            source="scheduled summary from cube solve logs in activity table",
+        )
+
+    return summary
 
 
 def fetch_unsplash() -> dict:
@@ -184,6 +218,7 @@ def fetch_strava() -> dict:
 def lambda_handler(event, context):
     ctl = recompute_ctl()
     volunteer = recompute_volunteer()
+    solves = recompute_solves()
     unsplash = fetch_unsplash()
     strava = fetch_strava()
 
@@ -207,6 +242,7 @@ def lambda_handler(event, context):
             {
                 **ctl,
                 **volunteer,
+                "solves": solves,
                 "unsplash_response": unsplash,
                 "strava_response": strava,
             }
