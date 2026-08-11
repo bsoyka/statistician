@@ -177,3 +177,42 @@ resource "aws_lambda_permission" "private_ctl_apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*/private/ctl/*"
 }
+
+resource "aws_apigatewayv2_integration" "private_solves" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.private_solves.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "private_solves_batch_post" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "POST /private/solves/batch"
+  target             = "integrations/${aws_apigatewayv2_integration.private_solves.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_solves_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/solves"
+  target             = "integrations/${aws_apigatewayv2_integration.private_solves.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_apigatewayv2_route" "private_solves_summary_get" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /private/solves/summary"
+  target             = "integrations/${aws_apigatewayv2_integration.private_solves.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+resource "aws_lambda_permission" "private_solves_apigw" {
+  statement_id  = "AllowExecutionFromAPIGateway-private-solves"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.private_solves.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*/private/solves*"
+}

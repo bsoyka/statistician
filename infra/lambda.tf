@@ -78,6 +78,22 @@ resource "aws_lambda_function" "private_ctl" {
   }
 }
 
+resource "aws_lambda_function" "private_solves" {
+  function_name = "${local.name_prefix}-private-solves"
+  role          = aws_iam_role.private_activity_lambda.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.14"
+
+  filename         = data.archive_file.lambda_zip["private_solves"].output_path
+  source_code_hash = data.archive_file.lambda_zip["private_solves"].output_base64sha256
+
+  environment {
+    variables = {
+      ACTIVITY_TABLE = aws_dynamodb_table.activity_records.name
+    }
+  }
+}
+
 resource "aws_lambda_function" "recompute_stats" {
   function_name = "${local.name_prefix}-recompute-stats"
   role          = aws_iam_role.recompute_stats_lambda.arn

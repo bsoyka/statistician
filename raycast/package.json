@@ -64,6 +64,13 @@
       "subtitle": "Statistician",
       "description": "Browse volunteer time entries",
       "mode": "view"
+    },
+    {
+      "name": "view-solves",
+      "title": "View Cube Solves",
+      "subtitle": "Statistician",
+      "description": "Browse recent 3x3 solves and current stats",
+      "mode": "view"
     }
   ],
   "tools": [],
