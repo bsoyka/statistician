@@ -46,9 +46,7 @@ export default function ViewSolves() {
           <List.Item
             title="Current Ao12"
             icon={Icon.LineChart}
-            accessories={[
-              { text: summary.current_ao12_ms !== null ? formatSolveTime(summary.current_ao12_ms) : "—" },
-            ]}
+            accessories={[{ text: summary.current_ao12_ms !== null ? formatSolveTime(summary.current_ao12_ms) : "—" }]}
           />
         </List.Section>
       )}

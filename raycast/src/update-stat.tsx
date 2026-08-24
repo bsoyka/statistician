@@ -4,6 +4,7 @@ import { apiGet, apiPut } from "./api";
 import { Stat } from "./types";
 
 interface UpdateStatFormValues {
+  statKey: string;
   value: string;
   label: string;
   isPublic: boolean;
@@ -50,10 +51,12 @@ export function UpdateStat({ statKey, initialValues, onSuccess }: UpdateStatProp
         }
       : null);
 
+  const isCreating = !statKey && !fetchedStat;
+
   async function handleSubmit(values: UpdateStatFormValues) {
-    const key = statKey ?? fetchedStat?.stat_key;
+    const key = statKey ?? fetchedStat?.stat_key ?? values.statKey.trim();
     if (!key) {
-      await showToast({ style: Toast.Style.Failure, title: "No stat key — enter one above" });
+      await showToast({ style: Toast.Style.Failure, title: "Stat key is required" });
       return;
     }
 
@@ -67,11 +70,11 @@ export function UpdateStat({ statKey, initialValues, onSuccess }: UpdateStatProp
     try {
       await apiPut<Stat>(`/private/stats/${key}`, {
         value: numValue,
-        label: values.label,
+        label: values.label || key,
         public: values.isPublic,
         ...(values.funFactTemplate ? { fun_fact_template: values.funFactTemplate } : {}),
       });
-      await showToast({ style: Toast.Style.Success, title: "Stat updated" });
+      await showToast({ style: Toast.Style.Success, title: isCreating ? "Stat created" : "Stat updated" });
       onSuccess?.();
       pop();
     } finally {
@@ -90,10 +93,11 @@ export function UpdateStat({ statKey, initialValues, onSuccess }: UpdateStatProp
       isLoading={isLoading}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Update Stat" onSubmit={handleSubmit} />
+          <Action.SubmitForm title={isCreating ? "Create Stat" : "Update Stat"} onSubmit={handleSubmit} />
         </ActionPanel>
       }
     >
+      {isCreating && <Form.TextField id="statKey" title="Stat Key" placeholder="e.g. fitness.strava.runs_total" />}
       <Form.TextField
         id="value"
         title="Value"
@@ -112,7 +116,7 @@ export function UpdateStat({ statKey, initialValues, onSuccess }: UpdateStatProp
   );
 }
 
-// Standalone Raycast command entry point.
-export default function UpdateStatCommand(props: LaunchProps<{ arguments: { stat_key: string } }>) {
-  return <UpdateStat statKey={props.arguments.stat_key} />;
+// Standalone Raycast command entry point. Leave the argument blank to create a new stat.
+export default function UpdateStatCommand(props: LaunchProps<{ arguments: { stat_key?: string } }>) {
+  return <UpdateStat statKey={props.arguments.stat_key || undefined} />;
 }

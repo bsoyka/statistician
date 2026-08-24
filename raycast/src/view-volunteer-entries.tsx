@@ -1,7 +1,84 @@
-import { Action, ActionPanel, Color, Detail, Icon, List, useNavigation } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Detail,
+  Form,
+  Icon,
+  Keyboard,
+  List,
+  showToast,
+  Toast,
+  useNavigation,
+} from "@raycast/api";
 import { useEffect, useState } from "react";
-import { apiGet, formatDate, formatMinutes, toISODate } from "./api";
+import { apiGet, apiPost, formatDate, formatMinutes, toISODate } from "./api";
 import { VolunteerEntry } from "./types";
+
+interface LogVolunteerEntryFormValues {
+  date: Date | null;
+  hours: string;
+  organization: string;
+  group_name: string;
+  notes: string;
+  fmsc_meals: string;
+}
+
+function LogVolunteerEntry({ onSuccess }: { onSuccess?: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { pop } = useNavigation();
+
+  async function handleSubmit(values: LogVolunteerEntryFormValues) {
+    if (!values.date) {
+      await showToast({ style: Toast.Style.Failure, title: "Date is required" });
+      return;
+    }
+
+    const hours = parseFloat(values.hours);
+    if (isNaN(hours) || hours <= 0) {
+      await showToast({ style: Toast.Style.Failure, title: "Hours must be a positive number" });
+      return;
+    }
+    const minutes = Math.round(hours * 60);
+
+    const fmscMeals = values.fmsc_meals ? parseInt(values.fmsc_meals, 10) : undefined;
+
+    setIsLoading(true);
+    try {
+      await apiPost<VolunteerEntry>("/private/volunteer/entries", {
+        date: toISODate(values.date),
+        minutes,
+        ...(values.organization ? { organization: values.organization } : {}),
+        ...(values.group_name ? { group_name: values.group_name } : {}),
+        ...(values.notes ? { notes: values.notes } : {}),
+        ...(fmscMeals !== undefined ? { fmsc_meals: fmscMeals } : {}),
+      });
+      await showToast({ style: Toast.Style.Success, title: "Volunteer entry logged" });
+      onSuccess?.();
+      pop();
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <Form
+      isLoading={isLoading}
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm title="Log Entry" onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
+      <Form.DatePicker id="date" title="Date" type={Form.DatePicker.Type.Date} />
+      <Form.TextField id="hours" title="Hours" placeholder="e.g. 1.5" />
+      <Form.TextField id="organization" title="Organization" placeholder="Optional" />
+      <Form.TextField id="group_name" title="Group Name" placeholder="Optional" />
+      <Form.TextArea id="notes" title="Notes" placeholder="Optional" />
+      <Form.TextField id="fmsc_meals" title="FMSC Meals" placeholder="Optional number" />
+    </Form>
+  );
+}
 
 function EntryDetail({ entry }: { entry: VolunteerEntry }) {
   const lines: string[] = [
@@ -48,6 +125,7 @@ const RANGE_OPTIONS: { title: string; value: string; days: number }[] = [
 export default function ViewVolunteerEntries() {
   const [entries, setEntries] = useState<VolunteerEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [rangeDays, setRangeDays] = useState(30);
   const { push } = useNavigation();
 
   async function loadEntries(from: Date, to: Date) {
@@ -67,8 +145,24 @@ export default function ViewVolunteerEntries() {
 
   function handleRangeChange(value: string) {
     const opt = RANGE_OPTIONS.find((o) => o.value === value);
-    if (opt) loadEntries(daysAgo(opt.days), new Date());
+    if (opt) {
+      setRangeDays(opt.days);
+      loadEntries(daysAgo(opt.days), new Date());
+    }
   }
+
+  function reloadCurrentRange() {
+    loadEntries(daysAgo(rangeDays), new Date());
+  }
+
+  const logEntryAction = (
+    <Action
+      title="Log Entry"
+      icon={Icon.Plus}
+      shortcut={Keyboard.Shortcut.Common.New}
+      onAction={() => push(<LogVolunteerEntry onSuccess={reloadCurrentRange} />)}
+    />
+  );
 
   return (
     <List
@@ -81,6 +175,7 @@ export default function ViewVolunteerEntries() {
           ))}
         </List.Dropdown>
       }
+      actions={<ActionPanel>{logEntryAction}</ActionPanel>}
     >
       {entries.map((entry) => {
         const accessories: List.Item.Accessory[] = [];
@@ -103,6 +198,7 @@ export default function ViewVolunteerEntries() {
             actions={
               <ActionPanel>
                 <Action title="View Details" icon={Icon.Eye} onAction={() => push(<EntryDetail entry={entry} />)} />
+                {logEntryAction}
               </ActionPanel>
             }
           />

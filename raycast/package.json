@@ -5,7 +5,7 @@
   "description": "Personal statistic management",
   "icon": "extension-icon.png",
   "author": "bsoyka",
-  "owner": "bsoyka-org",
+  "owner": "ben-soyka-org",
   "platforms": [
     "Windows",
     "macOS"
@@ -19,37 +19,23 @@
       "name": "get-all-stats",
       "title": "Get All Stats",
       "subtitle": "Statistician",
-      "description": "Browse all stats",
-      "mode": "view"
-    },
-    {
-      "name": "create-stat",
-      "title": "Create Stat",
-      "subtitle": "Statistician",
-      "description": "Create a new stat",
+      "description": "Browse all stats, or create a new one",
       "mode": "view"
     },
     {
       "name": "update-stat",
       "title": "Update Stat",
       "subtitle": "Statistician",
-      "description": "Update a stat by key",
+      "description": "Update a stat by key, or create a new one",
       "mode": "view",
       "arguments": [
         {
           "name": "stat_key",
-          "placeholder": "Stat key",
+          "placeholder": "Stat key (leave blank to create)",
           "type": "text",
-          "required": true
+          "required": false
         }
       ]
-    },
-    {
-      "name": "log-volunteer-entry",
-      "title": "Log Volunteer Entry",
-      "subtitle": "Statistician",
-      "description": "Log a new volunteer time entry",
-      "mode": "view"
     },
     {
       "name": "log-ctl-week",
@@ -62,7 +48,7 @@
       "name": "view-volunteer-entries",
       "title": "View Volunteer Entries",
       "subtitle": "Statistician",
-      "description": "Browse volunteer time entries",
+      "description": "Browse volunteer time entries, or log a new one",
       "mode": "view"
     },
     {

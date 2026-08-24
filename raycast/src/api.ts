@@ -162,9 +162,7 @@ export function formatSolveTime(timeMs: number): string {
   const centiseconds = totalCentiseconds % 100;
   const secondsStr = String(seconds).padStart(minutes > 0 ? 2 : 1, "0");
   const centisecondsStr = String(centiseconds).padStart(2, "0");
-  return minutes > 0
-    ? `${minutes}:${secondsStr}.${centisecondsStr}`
-    : `${secondsStr}.${centisecondsStr}`;
+  return minutes > 0 ? `${minutes}:${secondsStr}.${centisecondsStr}` : `${secondsStr}.${centisecondsStr}`;
 }
 
 export function toISODate(date: Date): string {

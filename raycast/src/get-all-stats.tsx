@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Icon, List, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, Keyboard, List, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { apiGet, formatDate } from "./api";
 import { Stat } from "./types";
@@ -24,7 +24,15 @@ export default function GetAllStats() {
   }, []);
 
   return (
-    <List isLoading={isLoading} searchBarPlaceholder="Search stats…">
+    <List
+      isLoading={isLoading}
+      searchBarPlaceholder="Search stats…"
+      actions={
+        <ActionPanel>
+          <Action title="Create Stat" icon={Icon.Plus} onAction={() => push(<UpdateStat onSuccess={loadStats} />)} />
+        </ActionPanel>
+      }
+    >
       {stats.map((stat) => (
         <List.Item
           key={stat.stat_key}
@@ -55,6 +63,12 @@ export default function GetAllStats() {
                     />,
                   )
                 }
+              />
+              <Action
+                title="Create Stat"
+                icon={Icon.Plus}
+                shortcut={Keyboard.Shortcut.Common.New}
+                onAction={() => push(<UpdateStat onSuccess={loadStats} />)}
               />
             </ActionPanel>
           }
