@@ -10,7 +10,7 @@ from common.stats_table import put_stat
 
 METERS_TO_MILES = Decimal("0.000621371")
 
-_SECRETS_CLIENT = boto3.client("secretsmanager")
+_SSM_CLIENT = boto3.client("ssm")
 
 
 def current_year() -> str:
@@ -120,10 +120,10 @@ def recompute_solves() -> dict:
 
 
 def fetch_unsplash() -> dict:
-    secrets_response = _SECRETS_CLIENT.get_secret_value(
-        SecretId="statistician/prod/external/unsplash"
+    secrets_response = _SSM_CLIENT.get_parameter(
+        Name="/statistician/prod/external/unsplash", WithDecryption=True
     )
-    secrets = json.loads(secrets_response["SecretString"])
+    secrets = json.loads(secrets_response["Parameter"]["Value"])
 
     unsplash_response = urllib3.request(
         "GET",
@@ -164,10 +164,10 @@ def prepare_meters_to_miles(meters: float) -> Decimal:
 
 
 def fetch_strava() -> dict:
-    secrets_response = _SECRETS_CLIENT.get_secret_value(
-        SecretId="statistician/prod/external/strava"
+    secrets_response = _SSM_CLIENT.get_parameter(
+        Name="/statistician/prod/external/strava", WithDecryption=True
     )
-    secrets = json.loads(secrets_response["SecretString"])
+    secrets = json.loads(secrets_response["Parameter"]["Value"])
 
     # Refresh the access token using the refresh token.
     token_response = urllib3.request(
@@ -182,16 +182,18 @@ def fetch_strava() -> dict:
     )
     tokens = token_response.json()
 
-    # Persist the new access and refresh tokens back to Secrets Manager.
-    _SECRETS_CLIENT.put_secret_value(
-        SecretId="statistician/prod/external/strava",
-        SecretString=json.dumps(
+    # Persist the new access and refresh tokens back to Parameter Store.
+    _SSM_CLIENT.put_parameter(
+        Name="/statistician/prod/external/strava",
+        Value=json.dumps(
             {
                 **secrets,
                 "access_token": tokens["access_token"],
                 "refresh_token": tokens["refresh_token"],
             }
         ),
+        Type="SecureString",
+        Overwrite=True,
     )
 
     stats_response = urllib3.request(
