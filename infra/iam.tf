@@ -29,6 +29,7 @@ resource "aws_iam_role_policy" "private_activity_dynamodb" {
     Statement = [{
       Effect = "Allow"
       Action = [
+        "dynamodb:BatchWriteItem",
         "dynamodb:GetItem",
         "dynamodb:PutItem",
         "dynamodb:UpdateItem",

@@ -6,7 +6,7 @@ from common.solves_table import (
     VALID_PENALTIES,
     get_solve_summary,
     list_solves,
-    put_solve_if_new,
+    put_solves_batch,
 )
 
 SUPPORTED_EVENTS = ("333",)
@@ -67,28 +67,21 @@ def lambda_handler(event, context):
         if not isinstance(records, list) or not records:
             return json_response(400, {"message": "solves must be a non-empty array"})
 
-        imported = 0
-        skipped = 0
         errors = []
+        valid = []
 
+        # Validate up front, over the incoming array in order, so that every
+        # error carries the caller's own index for it. Writing happens after,
+        # in whatever order batching finds convenient.
         for index, record in enumerate(records):
             error = validate_solve_record(record)
             if error:
                 errors.append({"index": index, "message": error})
                 continue
 
-            written = put_solve_if_new(
-                event=record["event"],
-                scramble=record["scramble"],
-                time_ms=record["time_ms"],
-                penalty=record.get("penalty"),
-                timestamp=record["timestamp"],
-                source=record["source"],
-            )
-            if written:
-                imported += 1
-            else:
-                skipped += 1
+            valid.append(record)
+
+        imported, skipped = put_solves_batch(valid) if valid else (0, 0)
 
         return json_response(
             200, {"imported": imported, "skipped": skipped, "errors": errors}

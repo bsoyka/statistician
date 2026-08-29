@@ -4,6 +4,8 @@ from decimal import Decimal
 
 import boto3
 
+from common.dynamo import scan_all
+
 _TABLE_NAME = os.environ["STATS_TABLE"]
 _TABLE = boto3.resource("dynamodb").Table(_TABLE_NAME)
 
@@ -13,17 +15,16 @@ def iso_now() -> str:
 
 
 def get_all_stats() -> list[dict]:
-    resp = _TABLE.scan()
-    return resp.get("Items", [])
+    return scan_all(_TABLE)
 
 
 def get_public_stats() -> list[dict]:
-    resp = _TABLE.scan(
+    return scan_all(
+        _TABLE,
         FilterExpression="#public = :true",
         ExpressionAttributeNames={"#public": "public"},
         ExpressionAttributeValues={":true": True},
     )
-    return resp.get("Items", [])
 
 
 def get_stat(stat_key: str) -> dict | None:

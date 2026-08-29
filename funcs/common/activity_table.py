@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from common.dynamo import query_all
+
 _TABLE = boto3.resource("dynamodb").Table(os.environ["ACTIVITY_TABLE"])
 
 
@@ -65,8 +67,7 @@ def list_volunteer_entries(
     if date_from and date_to:
         key_cond &= Key("sk").between(f"DATE#{date_from}#", f"DATE#{date_to}#~")
 
-    response = _TABLE.query(KeyConditionExpression=key_cond)
-    return response.get("Items", [])
+    return query_all(_TABLE, KeyConditionExpression=key_cond)
 
 
 def get_volunteer_summary(
@@ -152,5 +153,4 @@ def list_ctl_weeks(
     if date_from and date_to:
         key_cond &= Key("sk").between(f"WEEK_END#{date_from}", f"WEEK_END#{date_to}")
 
-    response = _TABLE.query(KeyConditionExpression=key_cond)
-    return response.get("Items", [])
+    return query_all(_TABLE, KeyConditionExpression=key_cond)

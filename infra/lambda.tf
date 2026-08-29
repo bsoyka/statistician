@@ -92,6 +92,13 @@ resource "aws_lambda_function" "private_solves" {
       ACTIVITY_TABLE = aws_dynamodb_table.activity_records.name
     }
   }
+
+  # Batch imports do a range Query plus BatchWriteItem calls proportional to
+  # the export size. 30s is the ceiling an API Gateway HTTP API integration
+  # will wait for anyway; the extra memory is really for the extra CPU that
+  # comes with it, which the 128 MB default was short on.
+  timeout     = 30
+  memory_size = 512
 }
 
 resource "aws_lambda_function" "recompute_stats" {

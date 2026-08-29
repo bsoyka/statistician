@@ -32,6 +32,7 @@ locals {
       [
         filesha256("${path.module}/../funcs/common/__init__.py"),
         filesha256("${path.module}/../funcs/common/activity_table.py"),
+        filesha256("${path.module}/../funcs/common/dynamo.py"),
         filesha256("${path.module}/../funcs/common/facts.py"),
         filesha256("${path.module}/../funcs/common/response.py"),
         filesha256("${path.module}/../funcs/common/solves_table.py"),
